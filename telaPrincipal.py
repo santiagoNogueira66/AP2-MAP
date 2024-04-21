@@ -1,13 +1,13 @@
 import mysql.connector
 from mysql.connector import  errors
-import tkinter as tk
 import datetime
+import tkinter as tk
 from tkinter import Frame, Label, Entry, Button
 
 
 class ProdutoView:
     def __init__(self, root):
-        self.fontepadrao = ("Arial", "10")
+        self.fontepadrao = ("Arial", "15")
         self.root = root
 
         self.primeiroContainer = Frame(root)
@@ -16,6 +16,7 @@ class ProdutoView:
 
         self.segundoContainer = Frame(root)
         self.segundoContainer["padx"] = 20
+        self.segundoContainer["pady"] = 10
         self.segundoContainer.pack()
 
         self.terceirocontainer = Frame(root)
@@ -31,28 +32,28 @@ class ProdutoView:
         self.quintoContainer.pack()
 
         self.titulo = Label(self.primeiroContainer, text="Gerenciamento de Vendas")
-        self.titulo['font'] = ("Arial", "10", "bold")
+        self.titulo['font'] = ("Arial", "15", "bold")
         self.titulo.pack()
 
         self.nomeProdutoLabel = Label(self.segundoContainer, text="Nome do Produto", font=self.fontepadrao)
         self.nomeProdutoLabel.pack(side=tk.LEFT)
 
         self.nomeProduto = Entry(self.segundoContainer)
-        self.nomeProduto["width"] = 30
+        self.nomeProduto["width"] = 50
         self.nomeProduto.pack(side=tk.LEFT)
 
         self.precoProdutoLabel = Label(self.terceirocontainer, text="Preço do Produto", font=self.fontepadrao)
         self.precoProdutoLabel.pack(side=tk.LEFT)
 
         self.precoProduto = Entry(self.terceirocontainer)
-        self.precoProduto["width"] = 30
+        self.precoProduto["width"] = 50
         self.precoProduto.pack(side=tk.LEFT)
 
-        self.dataLabel = Label(self.quartoContainer, text="Data", font=self.fontepadrao)
+        self.dataLabel = Label(self.quartoContainer, text="Data", font= ("calibri", "15"))
         self.dataLabel.pack(side=tk.LEFT)
 
         self.dataAtual = datetime.datetime.now().strftime("%y/%m/%d")
-        self.dataProdutoLabel = Label(self.quartoContainer, text=self.dataAtual, font=self.fontepadrao)
+        self.dataProdutoLabel = Label(self.quartoContainer, text=self.dataAtual, font= ("calibri", "15"))
         self.dataProdutoLabel.pack(side=tk.LEFT)
 
         self.vender = Button(self.quintoContainer)

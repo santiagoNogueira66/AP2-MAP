@@ -17,7 +17,7 @@ class ProdutoModel:
             return None, None
 
     @staticmethod
-    def salvar_no_Banco(dados):
+    def salvar_no_Banco(dados, view_instance):
         conexao, cursor = ProdutoModel.conectar_com_banco()
         if conexao and cursor:
             try:
@@ -27,7 +27,8 @@ class ProdutoModel:
                     conexao.commit()
                     msg = "VENDA FINALIZADA!"
                     messagebox.showinfo("SUCESSO", msg)
-                    
+                    # Atualizar a Treeview após a inserção de dados
+                    view_instance.exibir_dados_do_banco()  # Chamar o método na instância existente da ProdutoView
                 else:
                     msg = "PREÇO E NOME DO PRODUTO SÃO OBRIGATÓRIOS"
                     messagebox.showinfo("PREENCHA TODOS OS CAMPOS!", msg)
@@ -121,7 +122,7 @@ class ProdutoView:
         self.vender["text"] = "Vender"
         self.vender["font"] = ("Arial", "12")
         self.vender["width"] = 10
-        self.vender["command"] = self.obter_dados
+        self.vender["command"] = lambda:self.obter_dados(self)
         self.vender.pack(pady=10)
 
         self.minha_lista = ttk.Treeview(self.sextoContainer, height=5, columns=("col1","col2","col3","col4"))
@@ -146,19 +147,19 @@ class ProdutoView:
             for row in dados_do_banco:
                 self.minha_lista.insert("", tk.END, values=row)
 
-    def obter_dados(self):
+    def obter_dados(self, view_instance):
         nome_produto = self.nomeProdutoEntry.get()
         preco_produto = self.precoProdutoEntry.get()
         data_venda = self.dataProdutoLabel["text"]
 
         dados = (nome_produto, preco_produto, data_venda)
-        ProdutoController.inserir_dados(dados)
+        ProdutoController.inserir_dados(dados, view_instance)
 
 
 class ProdutoController:
     @staticmethod
-    def inserir_dados(dados):
-        ProdutoModel.salvar_no_Banco(dados)
+    def inserir_dados(dados, view_instance):
+        ProdutoModel.salvar_no_Banco(dados, view_instance)
 
 
 if __name__ == "__main__":

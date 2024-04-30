@@ -19,7 +19,7 @@ class ProdutoModel:
             return None, None
 
     @staticmethod
-    def inserir_dados(dados, view_instance):
+    def inserir_produtos(dados, view_instance):
         conexao, cursor = ProdutoModel.conectar_com_banco()
         if conexao and cursor:
             try:
@@ -66,15 +66,15 @@ class ProdutoModel:
            return None
 
     @staticmethod
-    def editar_dados(dados):
+    def editar_produtos(dados_atualizados):
         conexao, cursor = ProdutoModel.conectar_com_banco()
         if conexao and cursor:
             try:
                 update = "UPDATE produtos SET nome_produto = %s, preco_produto = %s, data_venda = %s WHERE id = %s"
-                cursor.execute(update, dados)
+                cursor.execute(update, dados_atualizados)
+                conexao.commit()
             except psycopg2.Error as err:
-                   print("erro ao editar os dados do banco", err)
-
+                print("Erro ao editar os dados do banco:", err)
             finally:
                 if cursor:
                     cursor.close()
@@ -82,7 +82,6 @@ class ProdutoModel:
                     conexao.close()
         else:
             print("Não foi possível conectar ao banco de dados.")
-            return None
 
 class ProdutoView:
     def __init__(self, root):
@@ -129,25 +128,28 @@ class ProdutoView:
         self.vender["text"] = "Vender"
         self.vender["font"] = self.fontepadrao
         self.vender["width"] = 10
+        self.vender["command"] = lambda: self.inserir_produtos(self)
         self.vender.place(relx=0.20, rely=0.90, anchor="center")
 
         self.editar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.editar["text"] = "Editar"
         self.editar["font"] = self.fontepadrao
         self.editar["width"] = 10
+        self.editar["command"] = self.salvar_edicao  # Agora o botão de editar chama o método double_click
         self.editar.place(relx=0.50, rely=0.90, anchor="center")
 
         self.excluir = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.excluir["text"] = "Excluir"
         self.excluir["font"] = self.fontepadrao
         self.excluir["width"] = 10
+        # self.excluir["command"] = self.excluir_produtos
         self.excluir.place(relx=0.80, rely=0.90, anchor="center")
 
         style = ThemedStyle()
         style.configure("Treeview", background="#081D3C", foreground="white", fieldbackground="#081D3C")
 
         self.minha_lista = ttk.Treeview(self.segundoContainer, height=5, columns=("col1", "col2", "col3", "col4"))
-        self.minha_lista.heading("col1", text="ID")
+        self.minha_lista.heading("col1", text="ID",)
         self.minha_lista.heading("col2", text="Nome do produto")
         self.minha_lista.heading("col3", text="Preço do produto")
         self.minha_lista.heading("col4", text="Data da venda")
@@ -160,6 +162,21 @@ class ProdutoView:
 
         self.exibir_dados_do_banco()
 
+        self.minha_lista.bind("<Double-1>", self.double_click)
+
+    def double_click(self, event=None):
+        # Obter o item selecionado na Treeview
+        item_selecionado = self.minha_lista.selection()[0]
+
+        # Obter os dados do item selecionado
+        self.dados_selecionados = self.minha_lista.item(item_selecionado, "values")
+
+        # Preencher os campos de entrada com os dados do item selecionado
+        self.nomeProdutoEntry.delete(0, tk.END)
+        self.nomeProdutoEntry.insert(0, self.dados_selecionados[1])  # Nome do produto
+        self.precoProdutoEntry.delete(0, tk.END)
+        self.precoProdutoEntry.insert(0, self.dados_selecionados[2])
+
     def exibir_dados_do_banco(self):
         dados_do_banco = ProdutoModel.obter_dados_do_banco()
         if dados_do_banco:
@@ -171,29 +188,36 @@ class ProdutoView:
     def obter_dados(self):
         nome_produto = self.nomeProdutoEntry.get()
         preco_produto = self.precoProdutoEntry.get()
-        data_venda = self.dataProdutoLabel["text"]
+        data_venda = self.dataAtual
 
         dados = (nome_produto, preco_produto, data_venda)
         return dados
 
-    def inserir_dados(self):
+    def inserir_produtos(self, view_instance):
         dados = self.obter_dados()
-        ProdutoController.inserir_dados(dados, self)
+        ProdutoController.inserir_produtos(dados, view_instance)
 
-    def editar_dados(self):
-        dados = self.obter_dados()
-        ProdutoController.editar_dados(dados, self)
+    def salvar_edicao(self):
+        if self.dados_selecionados:
+            dados_atualizados = self.obter_dados()
+            dados_atualizados += (self.dados_selecionados[0],)  # Adicionando o ID do item
+            ProdutoModel.editar_produtos(dados_atualizados)
+            msg = "Os dados foram atualizados com sucesso"
+            messagebox.showinfo("Dados Alterados", msg)
+            self.exibir_dados_do_banco()
+        else:
+            messagebox.showinfo("Erro", "Nenhum item selecionado para editar.")
 
 
 class ProdutoController:
 
     @staticmethod
-    def inserir_dados(dados, view_instance):
-        ProdutoModel.inserir_dados(dados, view_instance)
+    def inserir_produtos(dados, view_instance):
+        ProdutoModel.inserir_produtos(dados, view_instance)
 
     @staticmethod
-    def editar_dados(dados, view_instance):
-        ProdutoModel.editar_dados(dados)
+    def editar_produtos(dados, view_instance):
+        ProdutoModel.editar_produtos(dados)
 
 
 if __name__ == "__main__":

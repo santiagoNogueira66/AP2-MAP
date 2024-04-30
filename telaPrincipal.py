@@ -2,6 +2,8 @@ import psycopg2
 import datetime
 import tkinter as tk
 from tkinter import Frame, Label, Entry, Button, ttk, messagebox
+from ttkthemes import ThemedStyle
+
 
 
 class ProdutoModel:
@@ -17,7 +19,7 @@ class ProdutoModel:
             return None, None
 
     @staticmethod
-    def salvar_no_Banco(dados, view_instance):
+    def inserir_dados(dados, view_instance):
         conexao, cursor = ProdutoModel.conectar_com_banco()
         if conexao and cursor:
             try:
@@ -63,78 +65,97 @@ class ProdutoModel:
            print("Não foi possível conectar ao banco de dados.")
            return None
 
+    @staticmethod
+    def editar_dados(dados):
+        conexao, cursor = ProdutoModel.conectar_com_banco()
+        if conexao and cursor:
+            try:
+                update = "UPDATE produtos SET nome_produto = %s, preco_produto = %s, data_venda = %s WHERE id = %s"
+                cursor.execute(update, dados)
+            except psycopg2.Error as err:
+                   print("erro ao editar os dados do banco", err)
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if conexao:
+                    conexao.close()
+        else:
+            print("Não foi possível conectar ao banco de dados.")
+            return None
+
 class ProdutoView:
     def __init__(self, root):
         self.fontepadrao = ("Arial", "12")
         self.root = root
+        self.root.configure(background="#514d4d")
+        self.root.geometry("1300x600")
+        self.root.resizable(True, True)
+        # self.root.maxsize(width=1500, height=450)
+        # self.root.minsize(width=800, height=400)
 
-        self.primeiroContainer = Frame(root)
+        self.primeiroContainer = Frame(root,bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
         self.primeiroContainer["pady"] = 10
-        self.primeiroContainer.pack()
+        self.primeiroContainer.place(relx=0.20, rely=0.10, relwidth=0.5, relheight=0.50)
 
-        self.segundoContainer = Frame(root)
-        self.segundoContainer["padx"] = 20
+        self.segundoContainer = Frame(root,bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
         self.segundoContainer["pady"] = 10
-        self.segundoContainer.pack()
+        self.segundoContainer.place(relx=0.20, rely=0.60, relwidth=0.50, relheight=0.30)
 
-        self.terceirocontainer = Frame(root)
-        self.terceirocontainer["padx"] = 20
-        self.terceirocontainer.pack()
+        self.titulo = Label(self.primeiroContainer, text="Gerenciamento de Vendas", bg="#081D3C", fg="white")
+        self.titulo['font'] = ("Arial", "15", "bold", "italic")
+        self.titulo.place(relx=0.5, rely=0.10, anchor="center")
 
-        self.quartoContainer = Frame(root)
-        self.quartoContainer["pady"] = 20
-        self.quartoContainer.pack()
+        self.nomeProdutoLabel = Label(self.primeiroContainer, text="Nome do Produto", font=self.fontepadrao, bg="#081D3C", fg="white")
+        self.nomeProdutoLabel.place(relx=0.20, rely=0.30, anchor="center")
 
-        self.quintoContainer = Frame(root)
-        self.quintoContainer["padx"] = 20
-        self.quintoContainer.pack()
-
-        self.sextoContainer = Frame(root)
-        self.sextoContainer["padx"] =20
-        self.sextoContainer.pack()
-
-        self.titulo = Label(self.primeiroContainer, text="Gerenciamento de Vendas")
-        self.titulo['font'] = ("Arial", "15", "bold")
-        self.titulo.pack()
-
-        self.nomeProdutoLabel = Label(self.segundoContainer, text="Nome do Produto", font=self.fontepadrao)
-        self.nomeProdutoLabel.pack(side=tk.LEFT)
-
-        self.nomeProdutoEntry = Entry(self.segundoContainer)
+        self.nomeProdutoEntry = Entry(self.primeiroContainer)
         self.nomeProdutoEntry["width"] = 50
-        self.nomeProdutoEntry.pack(side=tk.LEFT)
+        self.nomeProdutoEntry.place(relx=0.65, rely=0.30, anchor="center")
 
-        self.precoProdutoLabel = Label(self.terceirocontainer, text="Preço do Produto", font=self.fontepadrao)
-        self.precoProdutoLabel.pack(side=tk.LEFT)
+        self.precoProdutoLabel = Label(self.primeiroContainer, text="Preço do Produto", font=self.fontepadrao , bg="#081D3C", fg="white")
+        self.precoProdutoLabel.place(relx=0.20, rely=0.45, anchor="center")
 
-        self.precoProdutoEntry = Entry(self.terceirocontainer)
+        self.precoProdutoEntry = Entry(self.primeiroContainer)
         self.precoProdutoEntry["width"] = 50
-        self.precoProdutoEntry.pack(side=tk.LEFT)
-
-        self.dataLabel = Label(self.quartoContainer, text="Data", font=("calibri", "15"))
-        self.dataLabel.pack(side=tk.LEFT)
+        self.precoProdutoEntry.place(relx=0.65, rely=0.45, anchor="center")
 
         self.dataAtual = datetime.datetime.now().strftime("%d/%m/%Y")
-        self.dataProdutoLabel = Label(self.quartoContainer, text=self.dataAtual, font=("calibri", "15"))
-        self.dataProdutoLabel.pack(side=tk.LEFT)
 
-        self.vender = Button(self.quintoContainer)
+        self.dataLabel = Label(self.primeiroContainer, text="Data: " + self.dataAtual, font=("calibri", "15"), bg="#081D3C", fg="white")
+        self.dataLabel.place(relx=0.6, rely=0.60, anchor="e")
+
+        self.vender = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.vender["text"] = "Vender"
-        self.vender["font"] = ("Arial", "12")
+        self.vender["font"] = self.fontepadrao
         self.vender["width"] = 10
-        self.vender["command"] = lambda:self.obter_dados(self)
-        self.vender.pack(pady=10)
+        self.vender.place(relx=0.20, rely=0.90, anchor="center")
 
-        self.minha_lista = ttk.Treeview(self.sextoContainer, height=5, columns=("col1","col2","col3","col4"))
+        self.editar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
+        self.editar["text"] = "Editar"
+        self.editar["font"] = self.fontepadrao
+        self.editar["width"] = 10
+        self.editar.place(relx=0.50, rely=0.90, anchor="center")
+
+        self.excluir = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
+        self.excluir["text"] = "Excluir"
+        self.excluir["font"] = self.fontepadrao
+        self.excluir["width"] = 10
+        self.excluir.place(relx=0.80, rely=0.90, anchor="center")
+
+        style = ThemedStyle()
+        style.configure("Treeview", background="#081D3C", foreground="white", fieldbackground="#081D3C")
+
+        self.minha_lista = ttk.Treeview(self.segundoContainer, height=5, columns=("col1", "col2", "col3", "col4"))
         self.minha_lista.heading("col1", text="ID")
         self.minha_lista.heading("col2", text="Nome do produto")
         self.minha_lista.heading("col3", text="Preço do produto")
         self.minha_lista.heading("col4", text="Data da venda")
 
-        self.minha_lista.column("col1", width=100, anchor=tk.CENTER)
-        self.minha_lista.column("col2", width=200, anchor=tk.CENTER)
-        self.minha_lista.column("col3", width=300, anchor=tk.CENTER)
-        self.minha_lista.column("col4", width=400, anchor=tk.CENTER)
+        self.minha_lista.column("col1", width=50, anchor=tk.CENTER)
+        self.minha_lista.column("col2", width=110, anchor=tk.CENTER)
+        self.minha_lista.column("col3", width=110, anchor=tk.CENTER)
+        self.minha_lista.column("col4", width=100, anchor=tk.CENTER)
         self.minha_lista.pack(expand=True, fill=tk.BOTH)
 
         self.exibir_dados_do_banco()
@@ -147,19 +168,32 @@ class ProdutoView:
             for row in dados_do_banco:
                 self.minha_lista.insert("", tk.END, values=row)
 
-    def obter_dados(self, view_instance):
+    def obter_dados(self):
         nome_produto = self.nomeProdutoEntry.get()
         preco_produto = self.precoProdutoEntry.get()
         data_venda = self.dataProdutoLabel["text"]
 
         dados = (nome_produto, preco_produto, data_venda)
-        ProdutoController.inserir_dados(dados, view_instance)
+        return dados
+
+    def inserir_dados(self):
+        dados = self.obter_dados()
+        ProdutoController.inserir_dados(dados, self)
+
+    def editar_dados(self):
+        dados = self.obter_dados()
+        ProdutoController.editar_dados(dados, self)
 
 
 class ProdutoController:
+
     @staticmethod
     def inserir_dados(dados, view_instance):
-        ProdutoModel.salvar_no_Banco(dados, view_instance)
+        ProdutoModel.inserir_dados(dados, view_instance)
+
+    @staticmethod
+    def editar_dados(dados, view_instance):
+        ProdutoModel.editar_dados(dados)
 
 
 if __name__ == "__main__":

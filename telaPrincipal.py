@@ -152,21 +152,28 @@ class ProdutoView:
         self.vender["font"] = self.fontepadrao
         self.vender["width"] = 10
         self.vender["command"] = lambda: self.inserir_produtos(self)
-        self.vender.place(relx=0.20, rely=0.90, anchor="center")
+        self.vender.place(relx=0.25, rely=0.90, anchor="center")
 
         self.editar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.editar["text"] = "Editar"
         self.editar["font"] = self.fontepadrao
         self.editar["width"] = 10
         self.editar["command"] = self.salvar_edicao  # Agora o botão de editar chama o método double_click
-        self.editar.place(relx=0.50, rely=0.90, anchor="center")
+        self.editar.place(relx=0.45, rely=0.90, anchor="center")
 
         self.excluir = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.excluir["text"] = "Excluir"
         self.excluir["font"] = self.fontepadrao
         self.excluir["width"] = 10
         self.excluir["command"] = lambda: self.confirmar_exclusao(self.dados_selecionados)
-        self.excluir.place(relx=0.80, rely=0.90, anchor="center")
+        self.excluir.place(relx=0.65, rely=0.90, anchor="center")
+
+        self.limpar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
+        self.limpar["text"] = "Limpar"
+        self.limpar["font"] = self.fontepadrao
+        self.limpar["width"] = 10
+        self.limpar["command"] = self.limpar_entrys
+        self.limpar.place(relx=0.85, rely=0.90, anchor="center")
 
         style = ThemedStyle()
         style.configure("Treeview", background="#081D3C", foreground="white", fieldbackground="#081D3C")
@@ -186,6 +193,10 @@ class ProdutoView:
         self.exibir_dados_do_banco()
 
         self.minha_lista.bind("<Double-1>", self.double_click)
+
+    def limpar_entrys(self):
+        self.nomeProdutoEntry.delete(0,tk.END)
+        self.precoProdutoEntry.delete(0, tk.END)
 
     def confirmar_exclusao(self, dados_selecionados):
         if dados_selecionados:
@@ -234,6 +245,7 @@ class ProdutoView:
     def inserir_produtos(self, view_instance):
         dados = self.obter_dados()
         ProdutoController.inserir_produtos(dados, view_instance)
+        self.limpar_entrys()
 
     def salvar_edicao(self):
         if self.dados_selecionados:
@@ -243,6 +255,7 @@ class ProdutoView:
             msg = "Os dados foram atualizados com sucesso"
             messagebox.showinfo("Dados Alterados", msg)
             self.exibir_dados_do_banco()
+            self.limpar_entrys()
         else:
             messagebox.showinfo("Erro", "Nenhum item selecionado para editar.")
 
@@ -251,6 +264,9 @@ class ProdutoView:
         dados_selecionados = self.minha_lista.item(item_selecionado, "values")
         ProdutoController.excluir_produtos(dados_selecionados)
         self.exibir_dados_do_banco()
+
+
+
 
 class ProdutoController:
 

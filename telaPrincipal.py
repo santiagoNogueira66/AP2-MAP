@@ -29,7 +29,6 @@ class ProdutoModel:
                     conexao.commit()
                     msg = "VENDA FINALIZADA!"
                     messagebox.showinfo("SUCESSO", msg)
-                    # Atualizar a Treeview após a inserção de dados
                     view_instance.exibir_dados_do_banco()  # Chamar o método na instância existente da ProdutoView
                 else:
                     msg = "PREÇO E NOME DO PRODUTO SÃO OBRIGATÓRIOS"
@@ -101,9 +100,6 @@ class ProdutoModel:
                     conexao.close()
         else:
             print("Não foi possível conectar ao banco de dados.")
-
-
-
 
 class ProdutoView:
     def __init__(self, root):
@@ -200,27 +196,27 @@ class ProdutoView:
 
     def confirmar_exclusao(self, dados_selecionados):
         if dados_selecionados:
-            # Exibe uma caixa de diálogo de confirmação
+
             resposta = messagebox.askquestion("CONFIRMAÇÃO ?", "DESEJA REALMENTE EXCLUIR O PRODUTO ?")
 
-            if resposta == "yes":  # Se o usuário clicar em 'Sim'
+            if resposta == "yes":
                 id_produto = dados_selecionados[0]  # ID do produto a ser excluído
                 ProdutoController.excluir_produtos(dados_selecionados)
                 messagebox.showinfo("Sucesso", "Produto excluído com sucesso")
-                self.exibir_dados_do_banco()  # Atualiza a TreeView após a exclusão
-            else:  # Se o usuário clicar em 'Não' ou fechar a caixa de diálogo
+                self.exibir_dados_do_banco()
+            else:
                 messagebox.showinfo("Cancelado", "Exclusão cancelada")
         else:
             messagebox.showinfo("Erro", "Nenhum item selecionado para excluir.")
 
     def double_click(self, event=None):
-        # Obter o item selecionado na Treeview
+
         item_selecionado = self.minha_lista.selection()[0]
 
-        # Obter os dados do item selecionado
+
         self.dados_selecionados = self.minha_lista.item(item_selecionado, "values")
 
-        # Preencher os campos de entrada com os dados do item selecionado
+
         self.nomeProdutoEntry.delete(0, tk.END)
         self.nomeProdutoEntry.insert(0, self.dados_selecionados[1])  # Nome do produto
         self.precoProdutoEntry.delete(0, tk.END)
@@ -289,6 +285,5 @@ if __name__ == "__main__":
     ProdutoView(root)
     root.mainloop()
 
-# consigo deletaar
 
 

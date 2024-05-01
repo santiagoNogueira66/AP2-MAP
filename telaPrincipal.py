@@ -83,10 +83,33 @@ class ProdutoModel:
         else:
             print("Não foi possível conectar ao banco de dados.")
 
+    @staticmethod
+    def excluir_produtos(dados):
+        conexao, cursor = ProdutoModel.conectar_com_banco()
+        if conexao and cursor:
+            try:
+                id_produto = dados[0]
+                delete = "DELETE FROM produtos WHERE id = %s"
+                cursor.execute(delete, (id_produto,))
+                conexao.commit()
+            except psycopg2.Error as err:
+                print("Erro ao excluir dados do banco:", err)
+            finally:
+                if cursor:
+                    cursor.close()
+                if conexao:
+                    conexao.close()
+        else:
+            print("Não foi possível conectar ao banco de dados.")
+
+
+
+
 class ProdutoView:
     def __init__(self, root):
         self.fontepadrao = ("Arial", "12")
         self.root = root
+        self.root.title("Gerenciamento de Vendas em uma casa de ração")
         self.root.configure(background="#514d4d")
         self.root.geometry("1300x600")
         self.root.resizable(True, True)
@@ -142,7 +165,7 @@ class ProdutoView:
         self.excluir["text"] = "Excluir"
         self.excluir["font"] = self.fontepadrao
         self.excluir["width"] = 10
-        # self.excluir["command"] = self.excluir_produtos
+        self.excluir["command"] = lambda: self.confirmar_exclusao(self.dados_selecionados)
         self.excluir.place(relx=0.80, rely=0.90, anchor="center")
 
         style = ThemedStyle()
@@ -163,6 +186,21 @@ class ProdutoView:
         self.exibir_dados_do_banco()
 
         self.minha_lista.bind("<Double-1>", self.double_click)
+
+    def confirmar_exclusao(self, dados_selecionados):
+        if dados_selecionados:
+            # Exibe uma caixa de diálogo de confirmação
+            resposta = messagebox.askquestion("CONFIRMAÇÃO ?", "DESEJA REALMENTE EXCLUIR O PRODUTO ?")
+
+            if resposta == "yes":  # Se o usuário clicar em 'Sim'
+                id_produto = dados_selecionados[0]  # ID do produto a ser excluído
+                ProdutoController.excluir_produtos(dados_selecionados)
+                messagebox.showinfo("Sucesso", "Produto excluído com sucesso")
+                self.exibir_dados_do_banco()  # Atualiza a TreeView após a exclusão
+            else:  # Se o usuário clicar em 'Não' ou fechar a caixa de diálogo
+                messagebox.showinfo("Cancelado", "Exclusão cancelada")
+        else:
+            messagebox.showinfo("Erro", "Nenhum item selecionado para excluir.")
 
     def double_click(self, event=None):
         # Obter o item selecionado na Treeview
@@ -208,6 +246,11 @@ class ProdutoView:
         else:
             messagebox.showinfo("Erro", "Nenhum item selecionado para editar.")
 
+    def excluir_produtos(self):
+        item_selecionado = self.minha_lista.selection()[0]
+        dados_selecionados = self.minha_lista.item(item_selecionado, "values")
+        ProdutoController.excluir_produtos(dados_selecionados)
+        self.exibir_dados_do_banco()
 
 class ProdutoController:
 
@@ -219,8 +262,17 @@ class ProdutoController:
     def editar_produtos(dados, view_instance):
         ProdutoModel.editar_produtos(dados)
 
+    @staticmethod
+    def excluir_produtos(dados_selecionados):
+        ProdutoModel.excluir_produtos(dados_selecionados)
+
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     ProdutoView(root)
     root.mainloop()
+
+# consigo deletaar
+
+

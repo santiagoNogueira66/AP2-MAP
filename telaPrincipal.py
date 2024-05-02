@@ -103,7 +103,8 @@ class ProdutoModel:
 
 class ProdutoView:
     def __init__(self, root):
-        self.fontepadrao = ("Arial", "12")
+        self.fontepadrao = ("Arial", "20")
+        self.fonteEntrys = ("Arail", "25")
         self.root = root
         self.root.title("Gerenciamento de Vendas em uma casa de ração")
         self.root.configure(background="#514d4d")
@@ -114,11 +115,11 @@ class ProdutoView:
 
         self.primeiroContainer = Frame(root,bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
         self.primeiroContainer["pady"] = 10
-        self.primeiroContainer.place(relx=0.20, rely=0.10, relwidth=0.5, relheight=0.50)
+        self.primeiroContainer.place(relx=0.10, rely=0.10, relwidth=0.8, relheight=0.60)
 
         self.segundoContainer = Frame(root,bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
         self.segundoContainer["pady"] = 10
-        self.segundoContainer.place(relx=0.20, rely=0.60, relwidth=0.50, relheight=0.30)
+        self.segundoContainer.place(relx=0.10, rely=0.70, relwidth=0.80, relheight=0.30)
 
         self.titulo = Label(self.primeiroContainer, text="Gerenciamento de Vendas", bg="#081D3C", fg="white")
         self.titulo['font'] = ("Arial", "15", "bold", "italic")
@@ -127,35 +128,35 @@ class ProdutoView:
         self.nomeProdutoLabel = Label(self.primeiroContainer, text="Nome do Produto", font=self.fontepadrao, bg="#081D3C", fg="white")
         self.nomeProdutoLabel.place(relx=0.20, rely=0.30, anchor="center")
 
-        self.nomeProdutoEntry = Entry(self.primeiroContainer)
-        self.nomeProdutoEntry["width"] = 50
+        self.nomeProdutoEntry = Entry(self.primeiroContainer, font=self.fonteEntrys)
+        self.nomeProdutoEntry["width"] = 25
         self.nomeProdutoEntry.place(relx=0.65, rely=0.30, anchor="center")
 
         self.precoProdutoLabel = Label(self.primeiroContainer, text="Preço do Produto", font=self.fontepadrao , bg="#081D3C", fg="white")
         self.precoProdutoLabel.place(relx=0.20, rely=0.45, anchor="center")
 
-        self.precoProdutoEntry = Entry(self.primeiroContainer)
-        self.precoProdutoEntry["width"] = 50
-        self.precoProdutoEntry.place(relx=0.65, rely=0.45, anchor="center")
+        self.precoProdutoEntry = Entry(self.primeiroContainer, font=self.fonteEntrys)
+        self.precoProdutoEntry["width"] = 25
+        self.precoProdutoEntry.place(relx=0.65, rely=0.50, anchor="center")
 
         self.dataAtual = datetime.datetime.now().strftime("%d/%m/%Y")
 
-        self.dataLabel = Label(self.primeiroContainer, text="Data: " + self.dataAtual, font=("calibri", "15"), bg="#081D3C", fg="white")
-        self.dataLabel.place(relx=0.6, rely=0.60, anchor="e")
+        self.dataLabel = Label(self.primeiroContainer, text="Data: " + self.dataAtual, font=("calibri", "25"), bg="#081D3C", fg="white")
+        self.dataLabel.place(relx=0.6, rely=0.70, anchor="e")
 
         self.vender = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.vender["text"] = "Vender"
         self.vender["font"] = self.fontepadrao
         self.vender["width"] = 10
         self.vender["command"] = lambda: self.inserir_produtos(self)
-        self.vender.place(relx=0.25, rely=0.90, anchor="center")
+        self.vender.place(relx=0.15, rely=0.90, anchor="center")
 
         self.editar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.editar["text"] = "Editar"
         self.editar["font"] = self.fontepadrao
         self.editar["width"] = 10
         self.editar["command"] = self.salvar_edicao  # Agora o botão de editar chama o método double_click
-        self.editar.place(relx=0.45, rely=0.90, anchor="center")
+        self.editar.place(relx=0.40, rely=0.90, anchor="center")
 
         self.excluir = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.excluir["text"] = "Excluir"
@@ -169,10 +170,10 @@ class ProdutoView:
         self.limpar["font"] = self.fontepadrao
         self.limpar["width"] = 10
         self.limpar["command"] = self.limpar_entrys
-        self.limpar.place(relx=0.85, rely=0.90, anchor="center")
+        self.limpar.place(relx=0.90, rely=0.90, anchor="center")
 
         style = ThemedStyle()
-        style.configure("Treeview", background="#081D3C", foreground="white", fieldbackground="#081D3C")
+        style.configure("Treeview", font=("arial", 15), background="#081D3C", foreground="white", fieldbackground="#081D3C")
 
         self.minha_lista = ttk.Treeview(self.segundoContainer, height=5, columns=("col1", "col2", "col3", "col4"))
         self.minha_lista.heading("col1", text="ID",)
@@ -184,6 +185,13 @@ class ProdutoView:
         self.minha_lista.column("col2", width=110, anchor=tk.CENTER)
         self.minha_lista.column("col3", width=110, anchor=tk.CENTER)
         self.minha_lista.column("col4", width=100, anchor=tk.CENTER)
+
+        yscrollbar = ttk.Scrollbar(self.root, orient=tk.VERTICAL, command=self.minha_lista.yview)
+        yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Configure the Treeview to use the scrollbar
+        self.minha_lista.configure(yscrollcommand=yscrollbar.set)
+
         self.minha_lista.pack(expand=True, fill=tk.BOTH)
 
         self.exibir_dados_do_banco()
@@ -204,8 +212,10 @@ class ProdutoView:
                 ProdutoController.excluir_produtos(dados_selecionados)
                 messagebox.showinfo("Sucesso", "Produto excluído com sucesso")
                 self.exibir_dados_do_banco()
+                self.limpar_entrys()
             else:
                 messagebox.showinfo("Cancelado", "Exclusão cancelada")
+                self.limpar_entrys()
         else:
             messagebox.showinfo("Erro", "Nenhum item selecionado para excluir.")
 
@@ -259,7 +269,7 @@ class ProdutoView:
         item_selecionado = self.minha_lista.selection()[0]
         dados_selecionados = self.minha_lista.item(item_selecionado, "values")
         ProdutoController.excluir_produtos(dados_selecionados)
-        self.exibir_dados_do_banco()
+
 
 
 

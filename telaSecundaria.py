@@ -27,7 +27,7 @@ class GastosModel:
                     insert = "INSERT INTO gastos(nome_gasto, valor_gasto, data_gasto) VALUES (%s, %s ,%s)"
                     cursor.execute(insert, gastos)
                     conexao.commit()
-                    msg = "VENDA FINALIZADA!"
+                    msg = "Gastos Registrados!"
                     messagebox.showinfo("SUCESSO", msg)
                     view_instance.exibir_dados_do_banco()
                 else:
@@ -65,13 +65,14 @@ class GastosModel:
            return None
 
     @staticmethod
-    def editar_gastos(gastos_atualizados):
+    def editar_gastos(gastos_atualizados, view_instance):
         conexao, cursor = GastosModel.conectar_com_banco()
         if conexao and cursor:
             try:
                 update = "UPDATE gastos SET nome_gasto= %s, valor_gasto= %s, data_gasto=%s WHERE id = %s"
                 cursor.execute(update, gastos_atualizados)
                 conexao.commit()
+                view_instance.exibir_dados_do_banco()
             except psycopg2.Error as err:
                 print("Erro ao editar os dados do banco:", err)
             finally:
@@ -110,14 +111,12 @@ class GastosView:
         self.root.configure(background="#514d4d")
         self.root.geometry("1300x600")
         self.root.resizable(True, True)
-        # self.root.maxsize(width=1500, height=450)
-        # self.root.minsize(width=800, height=400)
 
-        self.primeiroContainer = Frame(root,bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
+        self.primeiroContainer = Frame(root, bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
         self.primeiroContainer["pady"] = 10
         self.primeiroContainer.place(relx=0.10, rely=0.10, relwidth=0.8, relheight=0.60)
 
-        self.segundoContainer = Frame(root,bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
+        self.segundoContainer = Frame(root, bd=4, bg="#081D3C", highlightbackground="#000000", highlightthickness=2)
         self.segundoContainer["pady"] = 10
         self.segundoContainer.place(relx=0.10, rely=0.70, relwidth=0.80, relheight=0.30)
 
@@ -144,18 +143,18 @@ class GastosView:
         self.dataLabel = Label(self.primeiroContainer, text="Data: " + self.dataAtual, font=("calibri", "25"), bg="#081D3C", fg="white")
         self.dataLabel.place(relx=0.6, rely=0.70, anchor="e")
 
-        self.vender = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
-        self.vender["text"] = "Registrar Gasto"
-        self.vender["font"] = self.fontepadrao
-        self.vender["width"] = 15
-        self.vender["command"] = lambda: self.inserir_gastos(self)
-        self.vender.place(relx=0.15, rely=0.90, anchor="center")
+        self.gastar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
+        self.gastar["text"] = "Gastar"
+        self.gastar["font"] = self.fontepadrao
+        self.gastar["width"] = 10
+        self.gastar["command"] = lambda: self.inserir_gastos(self)
+        self.gastar.place(relx=0.20, rely=0.90, anchor="center")
 
         self.editar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.editar["text"] = "Editar"
         self.editar["font"] = self.fontepadrao
         self.editar["width"] = 10
-        self.editar["command"] = self.salvar_edicao
+        self.editar["command"] = self.editar_gastos
         self.editar.place(relx=0.40, rely=0.90, anchor="center")
 
         self.excluir = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
@@ -163,14 +162,14 @@ class GastosView:
         self.excluir["font"] = self.fontepadrao
         self.excluir["width"] = 10
         self.excluir["command"] = lambda: self.confirmar_exclusao(self.gastos_selecionados)
-        self.excluir.place(relx=0.65, rely=0.90, anchor="center")
+        self.excluir.place(relx=0.60, rely=0.90, anchor="center")
 
         self.limpar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.limpar["text"] = "Limpar"
         self.limpar["font"] = self.fontepadrao
         self.limpar["width"] = 10
         self.limpar["command"] = self.limpar_entrys
-        self.limpar.place(relx=0.90, rely=0.90, anchor="center")
+        self.limpar.place(relx=0.80, rely=0.90, anchor="center")
 
         style = ThemedStyle()
         style.configure("Treeview", font=("arial", 15), background="#081D3C", foreground="white", fieldbackground="#081D3C")
@@ -203,13 +202,11 @@ class GastosView:
 
     def confirmar_exclusao(self, gastos_selecionados):
         if gastos_selecionados:
-
             resposta = messagebox.askquestion("CONFIRMAÇÃO", "DESEJA REALMENTE EXCLUIR O GASTO ?")
-
             if resposta == "yes":
                 id_gasto = gastos_selecionados[0]
                 GastosController.excluir_gastos(gastos_selecionados)
-                messagebox.showinfo("Sucesso", "GASTO excluído com sucesso")
+                messagebox.showinfo("Sucesso", "gasto excluído com sucesso")
                 self.exibir_dados_do_banco()
                 self.limpar_entrys()
             else:
@@ -219,9 +216,7 @@ class GastosView:
             messagebox.showinfo("Erro", "Nenhum item selecionado para excluir.")
 
     def double_click(self, event=None):
-
         gastos_selecionado = self.minha_lista.selection()[0]
-
         self.gastos_selecionados = self.minha_lista.item(gastos_selecionado, "values")
         self.nomeGastoEntry.delete(0, tk.END)
         self.nomeGastoEntry.insert(0, self.gastos_selecionados[1])
@@ -240,7 +235,6 @@ class GastosView:
         nome_gasto = self.nomeGastoEntry.get()
         valor_gasto = self.precoGastoEntry.get()
         data_gasto = self.dataAtual
-
         gastos = (nome_gasto, valor_gasto, data_gasto)
         return gastos
 
@@ -249,22 +243,23 @@ class GastosView:
         GastosController.inserir_gastos(gastos, view_instance)
         self.limpar_entrys()
 
-    def salvar_edicao(self):
+    def editar_gastos(self):
         if self.gastos_selecionados:
             gastos_atualizados = self.obter_gastos()
             gastos_atualizados += (self.gastos_selecionados[0],)
-            GastosController.editar_gastos(gastos_atualizados)
+            GastosController.editar_gastos(gastos_atualizados, self)
             msg = "Os gastos foram atualizados com sucesso"
             messagebox.showinfo("Gastos Alterados", msg)
-            self.exibir_dados_do_banco()
             self.limpar_entrys()
         else:
             messagebox.showinfo("Erro", "Nenhum item selecionado para editar.")
+
 
     def excluir_gastos(self):
         gastos_selecionado = self.minha_lista.selection()[0]
         gastos_selecionados = self.minha_lista.item(gastos_selecionado, "values")
         GastosModel.excluir_gastos(gastos_selecionados)
+
 
 class GastosController:
 
@@ -274,7 +269,7 @@ class GastosController:
 
     @staticmethod
     def editar_gastos(gastos, view_instance):
-        GastosModel.editar_gastos(gastos)
+        GastosModel.editar_gastos(gastos, view_instance)
 
     @staticmethod
     def excluir_gastos(gastos_selecionados):

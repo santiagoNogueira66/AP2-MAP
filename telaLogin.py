@@ -13,6 +13,10 @@ class TelaLoginModel:
             conexao = psycopg2.connect(database='DBvendas', host='localhost', user='postgres', password='123456', port='5432')
             cursor = conexao.cursor()
 
+            create = "CREATE TABLE IF NOT EXISTS usuarios(id serial PRIMARY KEY, nome_usuario varchar(255), senha varchar(255))"
+
+            cursor.execute(create)
+
             return conexao, cursor
 
         except psycopg2.Error as err:
@@ -20,12 +24,12 @@ class TelaLoginModel:
             return None, None
 
     @staticmethod
-    def cadastrar_usuario(nome_usuario_cad, senha_cad):
+    def cadastrar_usuario(nome_usuario, senha):
         conexao, cursor = TelaLoginModel.conectar_com_banco()
         if conexao and cursor:
             try:
                 insert = "INSERT INTO usuarios(nome_usuario, senha) VALUES (%s,%s)"
-                cursor.execute(insert, (nome_usuario_cad, senha_cad))
+                cursor.execute(insert, (nome_usuario, senha))
                 conexao.commit()
 
                 msg = "usuario cadastrado com sucesso"
@@ -167,10 +171,10 @@ class TelaLoginController:
 
     @staticmethod
     def cadastrar_usuario(usuarioEntry, senhaEntry):
-        nome_usuario_cad = usuarioEntry.get()
-        senha_cad = senhaEntry.get()
+        nome_usuario = usuarioEntry.get()
+        senha = senhaEntry.get()
 
-        TelaLoginModel.cadastrar_usuario(nome_usuario_cad, senha_cad)
+        TelaLoginModel.cadastrar_usuario(nome_usuario, senha)
 
 if __name__ == "__main__":
     root = tk.Tk()

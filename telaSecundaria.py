@@ -1,9 +1,12 @@
+import time
 import psycopg2
 import datetime
+import webbrowser
+import padrao.relatorioDeLucro
+from padrao.relatorioDeLucro import RelatorioModel
 import tkinter as tk
 from tkinter import Frame, Label, Entry, Button, ttk, messagebox
 from ttkthemes import ThemedStyle
-
 
 
 class GastosModel:
@@ -13,7 +16,13 @@ class GastosModel:
             conexao = psycopg2.connect(database='DBvendas', host='localhost', user='postgres', password='123456',
                                        port='5432')
             cursor = conexao.cursor()
+
+            create = "CREATE TABLE IF NOT EXISTS gastos (id SERIAL PRIMARY KEY, nome_gasto VARCHAR(255) NOT NULL, valor_gasto DECIMAL NOT NULL, data_gasto VARCHAR(255))"
+
+            cursor.execute(create)
+
             return conexao, cursor
+
         except psycopg2.Error as err:
             print("Erro ao conectar ao banco de dados:", err)
             return None, None
@@ -102,6 +111,16 @@ class GastosModel:
         else:
             print("Não foi possível conectar ao banco de dados.")
 
+    @staticmethod
+    def calcular_lucro():
+        RelatorioModel.gerar_relatorio_pdf()
+        time.sleep(2)
+        GastosModel.abrir_pdf()
+
+    @staticmethod
+    def abrir_pdf():
+        webbrowser.open("relatorio.pdf")
+
 class GastosView:
     def __init__(self, root):
         self.fontepadrao = ("Arial", "20")
@@ -148,28 +167,35 @@ class GastosView:
         self.gastar["font"] = self.fontepadrao
         self.gastar["width"] = 10
         self.gastar["command"] = lambda: self.inserir_gastos(self)
-        self.gastar.place(relx=0.20, rely=0.90, anchor="center")
+        self.gastar.place(relx=0.1, rely=0.9, anchor="center")
 
         self.editar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.editar["text"] = "Editar"
         self.editar["font"] = self.fontepadrao
         self.editar["width"] = 10
         self.editar["command"] = self.editar_gastos
-        self.editar.place(relx=0.40, rely=0.90, anchor="center")
+        self.editar.place(relx=0.3, rely=0.9, anchor="center")
 
         self.excluir = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.excluir["text"] = "Excluir"
         self.excluir["font"] = self.fontepadrao
         self.excluir["width"] = 10
         self.excluir["command"] = lambda: self.confirmar_exclusao(self.gastos_selecionados)
-        self.excluir.place(relx=0.60, rely=0.90, anchor="center")
+        self.excluir.place(relx=0.7, rely=0.9, anchor="center")
 
         self.limpar = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
         self.limpar["text"] = "Limpar"
         self.limpar["font"] = self.fontepadrao
         self.limpar["width"] = 10
         self.limpar["command"] = self.limpar_entrys
-        self.limpar.place(relx=0.80, rely=0.90, anchor="center")
+        self.limpar.place(relx=0.9, rely=0.9, anchor="center")
+
+        self.lucro = Button(self.primeiroContainer, bd=2, bg="#7f8fff")
+        self.lucro["text"] = "lucros"
+        self.lucro["font"] = self.fontepadrao
+        self.lucro["width"] = 10
+        self.lucro["command"] = self.calcular_lucro
+        self.lucro.place(relx=0.5, rely=0.9, anchor="center")
 
         style = ThemedStyle()
         style.configure("Treeview", font=("arial", 15), background="#081D3C", foreground="white", fieldbackground="#081D3C")
@@ -260,6 +286,8 @@ class GastosView:
         gastos_selecionados = self.minha_lista.item(gastos_selecionado, "values")
         GastosModel.excluir_gastos(gastos_selecionados)
 
+    def calcular_lucro(self):
+        GastosController.calcular_lucro()
 
 class GastosController:
 
@@ -274,6 +302,9 @@ class GastosController:
     @staticmethod
     def excluir_gastos(gastos_selecionados):
        GastosModel.excluir_gastos(gastos_selecionados)
+    @staticmethod
+    def calcular_lucro():
+        GastosModel.calcular_lucro()
 
 if __name__ == "__main__":
     root = tk.Tk()

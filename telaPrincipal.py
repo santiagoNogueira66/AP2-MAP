@@ -13,7 +13,13 @@ class ProdutoModel:
             conexao = psycopg2.connect(database='DBvendas', host='localhost', user='postgres', password='123456',
                                        port='5432')
             cursor = conexao.cursor()
+
+            create = "CREATE TABLE IF NOT EXISTS produtos (id SERIAL PRIMARY KEY, nome_produto VARCHAR(255) , preco_produto DECIMAL , data_venda VARCHAR (255))"
+
+            cursor.execute(create)
+
             return conexao, cursor
+
         except psycopg2.Error as err:
             print("Erro ao conectar ao banco de dados:", err)
             return None, None

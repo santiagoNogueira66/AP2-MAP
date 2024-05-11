@@ -124,7 +124,7 @@ class RelatorioModel:
 
                 style2 = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray),
                                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                                    ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                                     ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                                     ('BACKGROUND', (0, 1), (-1, -1), colors.beige),

@@ -110,7 +110,7 @@ class ProdutoModel:
 class ProdutoView:
     def __init__(self, root):
         self.fontepadrao = ("Arial", "20")
-        self.fonteEntrys = ("Arail", "25")
+        self.fonteEntrys = ("Arial", "25")
         self.root = root
         self.root.title("Gerenciamento de Vendas em uma casa de ração")
         self.root.configure(background="#514d4d")
